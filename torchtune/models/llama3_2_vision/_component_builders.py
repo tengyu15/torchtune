@@ -649,6 +649,17 @@ def lora_llama3_2_vision_decoder(
         if apply_lora_to_output
         else nn.Linear(embed_dim, vocab_size + 10000, bias=False)
     )
+    assert not apply_lora_to_output
+    print('Only update new output tokens here.')
+    mask = torch.zeros_like(output_proj.weight, dtype=torch.bool)
+    mask[vocab_size:, :] = True
+    if mask_for_grad_[0] is None:
+        mask_for_grad_[0] = mask
+    def mask_gradients(in_grad):
+        grad = in_grad * 1.0
+        grad[~mask_for_grad_[0]] = 0
+        return grad
+    output_proj.weight.register_hook(mask_gradients)
 
     model = TransformerDecoder(
         tok_embeddings=tok_embeddings,

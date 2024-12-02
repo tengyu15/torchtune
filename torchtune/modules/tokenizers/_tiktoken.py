@@ -48,7 +48,7 @@ class TikTokenBaseTokenizer(BaseTokenizer):
     ):
         import pprint
         print('TikTokenBaseTokenizer get special_tokens')
-        pprint.pprint(sorted(special_tokens, key=lambda x:x[1]))
+        pprint.pprint(sorted(special_tokens.items(), key=lambda x:x[1]))
         mergeable_ranks = load_tiktoken_bpe(path)
         self.tt_model = Encoding(
             name=name,

@@ -227,6 +227,16 @@ def lora_llama3_2_vision_11b(
     print('Decoder:')
     print(decoder.tok_embeddings)
     print(decoder.output)
+    print('Only update new tokens here.')
+    mask = torch.zeros_like(new_embedding.weight, dtype=torch.bool)
+    mask[n:, :] = True
+    if mask_for_grad_[0] is None:
+        mask_for_grad_[0] = mask
+    def mask_gradients(in_grad):
+        grad = in_grad * 1.0
+        grad[~mask_for_grad_[0]] = 0
+        return grad
+    decoder.tok_embeddings.embedding.weight.register_hook(mask_gradients)
 
     return DeepFusionModel(
         encoder=encoder,
