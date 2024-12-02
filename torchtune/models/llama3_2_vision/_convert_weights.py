@@ -297,6 +297,7 @@ def llama3_vision_hf_to_tune(
                 value = _permute(value, num_kv_heads)
             elif new_key == "decoder.tok_embeddings.weight":
                 # Split embedding between learnable embeddings and original text embedding
+                vocab_size = 138256
                 learned_embedding = "decoder.tok_embeddings.fusion_embedding.weight"
                 converted_state_dict[learned_embedding] = value[vocab_size:]
                 value = value[:vocab_size]

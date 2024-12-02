@@ -192,6 +192,10 @@ class LoRAFinetuneRecipeSingleDevice(FTRecipeInterface):
             resume_from_checkpoint=self._resume_from_checkpoint,
         )
         checkpoint_dict = self._checkpointer.load_checkpoint()
+        import pprint
+        print('Original Load state dict.')
+        pprint.pprint({k: v.shape for k, v in list(checkpoint_dict.values())[0].items()
+            if 'output' in k or 'tok' in k or 'embed' in k})
 
         if self._resume_from_checkpoint:
             if training.ADAPTER_KEY not in checkpoint_dict:
@@ -488,7 +492,17 @@ class LoRAFinetuneRecipeSingleDevice(FTRecipeInterface):
     def _setup_optimizer(
         self, cfg_optimizer: DictConfig, opt_state_dict: Optional[Dict[str, Any]] = None
     ) -> Optimizer:
-        optimizer = config.instantiate(cfg_optimizer, self._model.parameters())
+        print('Default Optimize parameters: ')
+        import pprint
+        pprint.pprint(sorted([name for name, param in self._model.named_parameters()
+            if param.requires_grad]))
+        print('But, Maybe we can ignore these parameters, only finetune what we want.')
+        print(self._model.decoder.tok_embeddings)
+        # optimizer = config.instantiate(cfg_optimizer, self._model.parameters())
+        optimizer = config.instantiate(cfg_optimizer, sum([
+                list(self._model.decoder.tok_embeddings.embedding.parameters()),
+                list(self._model.decoder.output.parameters()),
+            ], []))
         if opt_state_dict:
             optimizer.load_state_dict(opt_state_dict)
 

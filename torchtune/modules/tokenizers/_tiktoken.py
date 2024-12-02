@@ -46,6 +46,9 @@ class TikTokenBaseTokenizer(BaseTokenizer):
         eos_id: int,
         special_tokens: Dict[str, int],
     ):
+        import pprint
+        print('TikTokenBaseTokenizer get special_tokens')
+        pprint.pprint(sorted(special_tokens, key=lambda x:x[1]))
         mergeable_ranks = load_tiktoken_bpe(path)
         self.tt_model = Encoding(
             name=name,
@@ -57,8 +60,10 @@ class TikTokenBaseTokenizer(BaseTokenizer):
         self.base_vocab_size = len(mergeable_ranks)
         # Vocab size with special tokens
         self.vocab_size = self.tt_model.n_vocab
+        print('TikTokenBaseTokenizer', self.base_vocab_size, self.vocab_size)
         self.bos_id = bos_id
         self.eos_id = eos_id
+        self.special_token_set = set(special_tokens)
 
     def _split_long_repetitions(
         self, s: str, max_consecutive_slice_len: int
@@ -124,7 +129,7 @@ class TikTokenBaseTokenizer(BaseTokenizer):
             tokens.extend(
                 self.tt_model.encode(
                     substr,
-                    allowed_special=set(),
+                    allowed_special=self.special_token_set,
                     disallowed_special=(),
                 )
             )

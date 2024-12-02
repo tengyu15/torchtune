@@ -633,6 +633,7 @@ def lora_llama3_2_vision_decoder(
         else:
             layers.append(decoder_layer)
 
+    print('_component_builders.py ', vocab_size, num_special_tokens, embed_dim, apply_lora_to_output)
     tok_embeddings = FusionEmbedding(vocab_size, num_special_tokens, embed_dim)
 
     # TODO: quantize_base is not applied to final output_proj currently.
@@ -640,13 +641,13 @@ def lora_llama3_2_vision_decoder(
     output_proj = (
         adapter_cls(
             embed_dim,
-            vocab_size,
+            vocab_size + 10000,
             rank=lora_rank,
             alpha=lora_alpha,
             dropout=lora_dropout,
         )
         if apply_lora_to_output
-        else nn.Linear(embed_dim, vocab_size, bias=False)
+        else nn.Linear(embed_dim, vocab_size + 10000, bias=False)
     )
 
     model = TransformerDecoder(

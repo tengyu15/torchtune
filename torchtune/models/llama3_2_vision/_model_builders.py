@@ -215,6 +215,19 @@ def lora_llama3_2_vision_11b(
         use_dora=use_dora,
         quantize_base=quantize_base,
     )
+    print('Plan Update emb here', decoder.tok_embeddings)
+    print(type(decoder.tok_embeddings.embedding))
+    n, m = decoder.tok_embeddings.embedding.weight.size()
+    print('Get size', n, m)
+    import torch
+    new_embedding = torch.nn.modules.sparse.Embedding(n + 10000, m)
+    new_embedding.weight.data[:n, :].copy_(decoder.tok_embeddings.embedding.weight.data)
+    decoder.tok_embeddings.embedding = new_embedding
+    print('Already Update emb here', decoder.tok_embeddings)
+    print('Decoder:')
+    print(decoder.tok_embeddings)
+    print(decoder.output)
+
     return DeepFusionModel(
         encoder=encoder,
         decoder=decoder,

@@ -101,6 +101,7 @@ class Llama3VisionTransform(ModelTokenizer, Transform):
         self.image_seq_len = max_num_tiles * (self.xattn_mask.patches_per_tile + 1)
         self.prompt_template = prompt_template
         self.pad_id = self.tokenizer.pad_id
+        self.print_count = 0
 
     @property
     def base_vocab_size(self) -> int:
@@ -203,6 +204,9 @@ class Llama3VisionTransform(ModelTokenizer, Transform):
                 - encoder_input: Dict[str, Any] of transformed images
                 - encoder_mask: List[bool] of masks for the transformed images
         """
+        self.print_count += 1
+        debug = self.print_count < 6
+        if debug: print('Before transform: ', sample)
         encoder_input = {"images": [], "aspect_ratio": []}
         messages = sample["messages"]
         for message in messages:
@@ -214,4 +218,15 @@ class Llama3VisionTransform(ModelTokenizer, Transform):
         sample["encoder_input"] = encoder_input
         sample = self.tokenizer(sample, inference=inference)
         sample = self.xattn_mask(sample, inference=inference)
+        if debug:
+            print('After  transform: ', sample)
+            print(self.tokenizer.decode(sample['tokens']))
+            print(self.tokenizer.tt_model.tt_model.decode(sample['tokens']))
+            for idx, (token, mask) in enumerate(zip(sample['tokens'], sample['mask'])):
+                print(idx, token, mask, '[%s]' % self.tokenizer.tt_model.tt_model.decode_single_token_bytes(token))
+        if self.print_count <= 1:
+            import json
+            with open('/tmp/mllama3.2_origin_special_tokens.json', 'wt') as f:
+                json.dump(self.tokenizer.tt_model.tt_model._special_tokens, f, indent=4)
+
         return sample
