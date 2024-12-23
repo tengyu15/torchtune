@@ -7,6 +7,7 @@
 from functools import partial
 from typing import List, Optional
 
+import torch
 from torchtune.data._prompt_templates import _get_prompt_template, _TemplateType
 
 from torchtune.models.llama3_2_vision._component_builders import (  # noqa
@@ -117,7 +118,7 @@ def llama3_2_vision_11b(
         fusion_trainable=fusion_trainable,
     )
 
-
+mask_for_grad_ = [None]
 def lora_llama3_2_vision_11b(
     lora_attn_modules: List[LORA_ATTN_MODULES],
     decoder_trainable: str = "frozen",
@@ -219,7 +220,6 @@ def lora_llama3_2_vision_11b(
     print(type(decoder.tok_embeddings.embedding))
     n, m = decoder.tok_embeddings.embedding.weight.size()
     print('Get size', n, m)
-    import torch
     new_embedding = torch.nn.modules.sparse.Embedding(n + 10000, m)
     new_embedding.weight.data[:n, :].copy_(decoder.tok_embeddings.embedding.weight.data)
     decoder.tok_embeddings.embedding = new_embedding

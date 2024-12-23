@@ -8,6 +8,7 @@ from enum import Enum
 from functools import partial
 from typing import List, Optional
 
+import torch
 from torch import nn
 from torchtune.models.clip._component_builders import (
     clip_mlp,
@@ -467,7 +468,7 @@ def lora_llama3_2_vision_encoder(
 
     return encoder
 
-
+mask_for_grad_ = [None]
 def lora_llama3_2_vision_decoder(
     decoder_lora: bool,
     fusion_lora: bool,
