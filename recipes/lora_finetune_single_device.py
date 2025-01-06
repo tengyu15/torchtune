@@ -499,10 +499,16 @@ class LoRAFinetuneRecipeSingleDevice(FTRecipeInterface):
         print('But, Maybe we can ignore these parameters, only finetune what we want.')
         print(self._model.decoder.tok_embeddings)
         # optimizer = config.instantiate(cfg_optimizer, self._model.parameters())
-        optimizer = config.instantiate(cfg_optimizer, sum([
+        params = sum([
                 list(self._model.decoder.tok_embeddings.embedding.parameters()),
                 list(self._model.decoder.output.parameters()),
-            ], []))
+            ], [])
+        optimizer = config.instantiate(cfg_optimizer, params)
+        print('params.requires_grad', [p.requires_grad for p in params])
+        for p in params:
+            p.requires_grad = True
+        print('Now, after change, params.requires_grad', [p.requires_grad for p in params])
+        print('Finally aprams: ', params)
         if opt_state_dict:
             optimizer.load_state_dict(opt_state_dict)
 

@@ -13,6 +13,18 @@ from torchtune.models.llama3 import llama3_tokenizer
 from torchtune.modules.tokenizers import ModelTokenizer
 from torchtune.modules.transforms import Transform, VisionCrossAttentionMask
 
+import torch, copy
+def process_pytorch_tensors(obj):
+    if isinstance(obj, dict):
+        for key in obj:
+            obj[key] = process_pytorch_tensors(obj[key])
+    elif isinstance(obj, list):
+        for i in range(len(obj)):
+            obj[i] = process_pytorch_tensors(obj[i])
+    elif isinstance(obj, torch.Tensor):
+        if obj.numel() > 100:
+            return obj.shape
+    return obj
 
 class Llama3VisionTransform(ModelTokenizer, Transform):
     """
@@ -206,7 +218,7 @@ class Llama3VisionTransform(ModelTokenizer, Transform):
         """
         self.print_count += 1
         debug = self.print_count < 6
-        if debug: print('Before transform: ', sample)
+        if debug: print('Before transform: ', process_pytorch_tensors(copy.deepcopy(sample)))
         encoder_input = {"images": [], "aspect_ratio": []}
         messages = sample["messages"]
         for message in messages:
@@ -219,7 +231,7 @@ class Llama3VisionTransform(ModelTokenizer, Transform):
         sample = self.tokenizer(sample, inference=inference)
         sample = self.xattn_mask(sample, inference=inference)
         if debug:
-            print('After  transform: ', sample)
+            print('After  transform: ', process_pytorch_tensors(copy.deepcopy(sample)))
             print(self.tokenizer.decode(sample['tokens']))
             print(self.tokenizer.tt_model.tt_model.decode(sample['tokens']))
             for idx, (token, mask) in enumerate(zip(sample['tokens'], sample['mask'])):

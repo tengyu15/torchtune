@@ -260,6 +260,21 @@ def llama3_vision_hf_to_tune(
     - reshaping q, k projections
     - reversing the precomputed vision positional embeddings
     """
+    print('llama3_vision_hf_to_tune, input state_dict:')
+    for k, t in state_dict.items():
+        # print(k, t.shape)
+        tensor = t
+        if k in ('language_model.model.embed_tokens.weight', 'language_model.lm_head.weight'):
+            print(k, t.shape)
+            for idx in [374, 128800, 128801, 128802, 128803, 138253, -12, -8, -2, -1]:
+                print(idx if idx > 0 else idx % tensor.shape[0],
+                      tensor[idx, :3].float().cpu().numpy().tolist() if idx < 0 or idx < tensor.shape[0] else None)
+
+    print('Params: num_heads:', num_heads, ', num_kv_heads:', num_kv_heads, ', dim:', dim,
+        ', head_dim:', head_dim, ', vocab_size:', vocab_size, ', cross_attention_layers:', cross_attention_layers,
+        ', encoder_dim:', encoder_dim, ', tile_size:', tile_size, ', num_tiles:', num_tiles,
+        ', supported_aspect_ratios:', supported_aspect_ratios)
+
     converted_state_dict = {}
     if head_dim is None:
         head_dim = dim // num_heads
@@ -330,6 +345,23 @@ def llama3_vision_hf_to_tune(
                 value = pos_embedding
 
         converted_state_dict[new_key] = value
+
+    print('llama3_vision_hf_to_tune, output converted_state_dict:')
+    for k, t in converted_state_dict.items():
+        # print(k, t.shape)
+        tensor = t
+        if k in ('decoder.tok_embeddings.weight', 'decoder.output.weight'):
+            print(k, t.shape)
+            for idx in [374, 128800, 128801, 128802, 128803, 138253, -12, -8, -2, -1]:
+                print(idx if idx > 0 else idx % tensor.shape[0],
+                      tensor[idx, :3].float().cpu().numpy().tolist() if idx < 0 or idx < tensor.shape[0] else None)
+        elif k == 'decoder.tok_embeddings.fusion_embedding.weight':
+            print(k, t.shape)
+            for idx in [0, -1]:
+                print(idx if idx > 0 else idx % tensor.shape[0],
+                      tensor[idx, :3].float().cpu().numpy().tolist() if idx < 0 or idx < tensor.shape[0] else None)
+
+
     return converted_state_dict
 
 
@@ -353,6 +385,21 @@ def llama3_vision_tune_to_hf(
     - skip loading the rope embeddings
     - reshaping q, k projections
     """
+    print('llama3_vision_tune_to_hf, input state_dict:')
+    for k, t in state_dict.items():
+        # print(k, t.shape)
+        tensor = t
+        if k in ('decoder.tok_embeddings.weight', 'decoder.output.weight'):
+            print(k, t.shape)
+            for idx in [374, 128800, 128801, 128802, 128803, 138253, -12, -8, -2, -1]:
+                print(idx if idx > 0 else idx % tensor.shape[0],
+                      tensor[idx, :3].float().cpu().numpy().tolist() if idx < 0 or idx < tensor.shape[0] else None)
+        elif k == 'decoder.tok_embeddings.fusion_embedding.weight':
+            print(k, t.shape)
+            for idx in [0, -1]:
+                print(idx if idx > 0 else idx % tensor.shape[0],
+                      tensor[idx, :3].float().cpu().numpy().tolist() if idx < 0 or idx < tensor.shape[0] else None)
+
     converted_state_dict = {}
     inverted_mapping_dict = {v: k for k, v in _FROM_HF.items()}
     # missing keys in _FROM_HF due to naming collisions
@@ -427,4 +474,16 @@ def llama3_vision_tune_to_hf(
                 value = pos_embedding.flatten(1)
 
         converted_state_dict[new_key] = value
+
+    print('llama3_vision_tune_to_hf, output converted_state_dict:')
+    for k, t in converted_state_dict.items():
+        # print(k, t.shape)
+        tensor = t
+        if k in ('language_model.model.embed_tokens.weight', 'language_model.lm_head.weight'):
+            print(k, t.shape)
+            for idx in [374, 128800, 128801, 128802, 128803, 138253, -12, -8, -2, -1]:
+                print(idx if idx > 0 else idx % tensor.shape[0],
+                      tensor[idx, :3].float().cpu().numpy().tolist() if idx < 0 or idx < tensor.shape[0] else None)
+
+
     return converted_state_dict

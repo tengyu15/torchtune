@@ -227,9 +227,9 @@ def lora_llama3_2_vision_11b(
     print('Decoder:')
     print(decoder.tok_embeddings)
     print(decoder.output)
-    print('Only update new tokens here.')
+    print('Only update new tokens here., token index greater than ', n + 8)
     mask = torch.zeros_like(new_embedding.weight, dtype=torch.bool)
-    mask[n:, :] = True
+    mask[n + 8:, :] = True
     if mask_for_grad_[0] is None:
         mask_for_grad_[0] = mask
     def mask_gradients(in_grad):

@@ -653,7 +653,8 @@ def lora_llama3_2_vision_decoder(
     assert not apply_lora_to_output
     print('Only update new output tokens here.')
     mask = torch.zeros_like(output_proj.weight, dtype=torch.bool)
-    mask[vocab_size:, :] = True
+    print('Only update token index greater than: ', vocab_size + 8)
+    mask[vocab_size + 8:, :] = True
     if mask_for_grad_[0] is None:
         mask_for_grad_[0] = mask
     def mask_gradients(in_grad):
